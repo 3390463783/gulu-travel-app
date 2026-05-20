@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>咕噜出行 Gulu Travel</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif; background: #f5f5f5; color: #333; }
+.app { height: 100%; display: flex; flex-direction: column; max-width: 480px; margin: 0 auto; position: relative; background: #f5f5f5; }
+.page { display: none; flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: 80px; }
+.page.active { display: block; }
+.bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; height: 65px; background: #fff; display: flex; align-items: center; justify-content: space-around; box-shadow: 0 -2px 12px rgba(0,0,0,0.08); z-index: 1000; padding-bottom: env(safe-area-inset-bottom); }
+.nav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; height: 100%; cursor: pointer; transition: all 0.2s; position: relative; }
+.nav-item svg { width: 24px; height: 24px; margin-bottom: 2px; transition: all 0.2s; }
+.nav-item span { font-size: 10px; color: #999; transition: all 0.2s; }
+.nav-item.active svg { transform: scale(1.1); }
+.nav-item.active span { color: #E85D04; font-weight: 600; }
+.nav-center { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; }
+.nav-center-btn { width: 52px; height: 52px; border-radius: 50%; background: linear-gradient(135deg, #F5A623, #E85D04); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(232,93,4,0.4); cursor: pointer; transition: all 0.3s; margin-top: -20px; }
+.nav-center-btn:active { transform: scale(0.92); }
+.nav-center-btn svg { width: 28px; height: 28px; fill: #fff; }
+.home-header { background: linear-gradient(135deg, #F5A623, #E85D04); padding: 50px 24px 30px; border-radius: 0 0 30px 30px; text-align: center; position: relative; overflow: hidden; }
+.home-header::before { content: ''; position: absolute; top: -50px; right: -50px; width: 150px; height: 150px; background: rgba(255,255,255,0.1); border-radius: 50%; }
+.home-header::after { content: ''; position: absolute; bottom: -30px; left: -30px; width: 100px; height: 100px; background: rgba(255,255,255,0.08); border-radius: 50%; }
+.home-greeting { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 6px; position: relative; z-index: 1; }
+.home-subtitle { font-size: 13px; color: rgba(255,255,255,0.85); letter-spacing: 2px; position: relative; z-index: 1; }
+.mascot-area { display: flex; justify-content: center; margin: -30px 0 20px; position: relative; z-index: 2; }
+.mascot { width: 100px; height: 100px; background: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.1); font-size: 50px; animation: mascotBounce 3s ease-in-out infinite; }
+@keyframes mascotBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.ai-plan-entry { margin: 0 20px; background: #fff; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+.ai-plan-entry h3 { font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.ai-plan-entry h3 .badge { background: linear-gradient(135deg, #F5A623, #E85D04); color: #fff; font-size: 10px; padding: 2px 8px; border-radius: 10px; }
+.ai-form { display: flex; flex-direction: column; gap: 10px; }
+.ai-form input, .ai-form select { width: 100%; padding: 10px 14px; border: 1.5px solid #eee; border-radius: 10px; font-size: 14px; outline: none; transition: border-color 0.2s; background: #fafafa; }
+.ai-form input:focus, .ai-form select:focus { border-color: #F5A623; background: #fff; }
+.ai-form-row { display: flex; gap: 10px; }
+.ai-form-row input, .ai-form-row select { flex: 1; }
+.ai-plan-btn { width: 100%; padding: 12px; background: linear-gradient(135deg, #F5A623, #E85D04); color: #fff; border: none; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 4px; }
+.ai-plan-btn:active { transform: scale(0.97); opacity: 0.9; }
+.ai-plan-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.section-title { font-size: 17px; font-weight: 600; margin: 24px 20px 14px; display: flex; align-items: center; justify-content: space-between; }
+.section-title .more { font-size: 13px; color: #999; font-weight: 400; cursor: pointer; }
+.trip-cards { padding: 0 20px; display: flex; flex-direction: column; gap: 14px; }
+.trip-card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s; }
+.trip-card:active { transform: scale(0.98); }
+.trip-card-img { height: 120px; display: flex; align-items: center; justify-content: center; font-size: 40px; }
+.trip-card-img.tokyo { background: linear-gradient(135deg, #FFB7C5, #FF69B4); }
+.trip-card-img.paris { background: linear-gradient(135deg, #87CEEB, #4169E1); }
+.trip-card-img.bali { background: linear-gradient(135deg, #98FB98, #2E8B57); }
+.trip-card-img.chengdu { background: linear-gradient(135deg, #FFD700, #FF8C00); }
+.trip-card-info { padding: 14px; }
+.trip-card-info h4 { font-size: 15px; margin-bottom: 4px; }
+.trip-card-info p { font-size: 12px; color: #999; }
+.trip-card-tags { display: flex; gap: 6px; margin-top: 8px; }
+.trip-card-tags span { font-size: 10px; padding: 2px 8px; background: #FFF3E0; color: #E85D04; border-radius: 8px; }
+.explore-header { padding: 50px 20px 16px; background: #fff; }
+.explore-header h2 { font-size: 22px; font-weight: 700; margin-bottom: 12px; }
+.search-bar { display: flex; align-items: center; background: #f5f5f5; border-radius: 12px; padding: 10px 14px; gap: 8px; }
+.search-bar svg { width: 18px; height: 18px; fill: #999; flex-shrink: 0; }
+.search-bar input { border: none; background: none; outline: none; font-size: 14px; flex: 1; }
+.explore-categories { display: flex; gap: 10px; padding: 16px 20px; overflow-x: auto; }
+.explore-categories::-webkit-scrollbar { display: none; }
+.cat-item { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
+.cat-icon { width: 50px; height: 50px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; }
+.cat-item span { font-size: 11px; color: #666; }
+.dest-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 20px 20px; }
+.dest-card { border-radius: 16px; overflow: hidden; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); cursor: pointer; transition: all 0.2s; }
+.dest-card:active { transform: scale(0.97); }
+.dest-card-img { height: 100px; display: flex; align-items: center; justify-content: center; font-size: 36px; }
+.dest-card-info { padding: 10px 12px; }
+.dest-card-info h4 { font-size: 14px; margin-bottom: 2px; }
+.dest-card-info p { font-size: 11px; color: #999; }
+.chat-header { padding: 50px 20px 14px; background: #fff; display: flex; align-items: center; gap: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); position: sticky; top: 0; z-index: 10; }
+.chat-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #F5A623, #E85D04); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+.chat-header-info h3 { font-size: 16px; }
+.chat-header-info p { font-size: 11px; color: #4CAF50; }
+.chat-messages { flex: 1; padding: 16px 20px; display: flex; flex-direction: column; gap: 12px; }
+.chat-msg { display: flex; gap: 8px; max-width: 85%; animation: msgIn 0.3s ease; }
+@keyframes msgIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.chat-msg-avatar { width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+.chat-msg.ai .chat-msg-avatar { background: linear-gradient(135deg, #F5A623, #E85D04); }
+.chat-msg.user .chat-msg-avatar { background: #e0e0e0; }
+.chat-bubble { padding: 10px 14px; border-radius: 16px; font-size: 14px; line-height: 1.5; word-break: break-word; }
+.chat-msg.ai .chat-bubble { background: #fff; color: #333; border-top-left-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.chat-msg.user .chat-bubble { background: linear-gradient(135deg, #F5A623, #E85D04); color: #fff; border-top-right-radius: 4px; }
+.chat-input-area { padding: 10px 20px; background: #fff; border-top: 1px solid #eee; display: flex; align-items: center; gap: 10px; position: sticky; bottom: 65px; }
+.chat-input-area input { flex: 1; padding: 10px 14px; border: 1.5px solid #eee; border-radius: 20px; font-size: 14px; outline: none; background: #f9f9f9; }
+.chat-input-area input:focus { border-color: #F5A623; }
+.chat-send-btn { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #F5A623, #E85D04); border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
+.chat-send-btn:active { transform: scale(0.9); }
+.chat-send-btn svg { width: 18px; height: 18px; fill: #fff; }
+.typing-indicator { display: flex; gap: 4px; padding: 4px 0; }
+.typing-indicator span { width: 6px; height: 6px; border-radius: 50%; background: #ccc; animation: typing 1.4s infinite; }
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-6px); } }
+.profile-header { background: linear-gradient(135deg, #F5A623, #E85D04); padding: 50px 24px 40px; text-align: center; border-radius: 0 0 30px 30px; }
+.profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: #fff; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; font-size: 36px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+.profile-name { font-size: 20px; font-weight: 700; color: #fff; }
+.profile-desc { font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 4px; }
+.profile-stats { display: flex; justify-content: center; gap: 30px; margin-top: 16px; }
+.profile-stat { text-align: center; }
+.profile-stat .num { font-size: 20px; font-weight: 700; color: #fff; }
+.profile-stat .label { font-size: 11px; color: rgba(255,255,255,0.7); margin-top: 2px; }
+.profile-menu { margin: 20px; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.profile-menu-item { display: flex; align-items: center; padding: 16px 18px; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.2s; }
+.profile-menu-item:last-child { border-bottom: none; }
+.profile-menu-item:active { background: #fafafa; }
+.profile-menu-item .icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-right: 12px; }
+.profile-menu-item .text { flex: 1; }
+.profile-menu-item .text h4 { font-size: 14px; }
+.profile-menu-item .text p { font-size: 11px; color: #999; margin-top: 2px; }
+.profile-menu-item .arrow { color: #ccc; font-size: 14px; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: flex-end; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: 24px 24px 0 0; width: 100%; max-width: 480px; max-height: 85vh; overflow-y: auto; padding: 24px; animation: modalUp 0.3s ease; }
+@keyframes modalUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.modal-handle { width: 36px; height: 4px; background: #ddd; border-radius: 2px; margin: 0 auto 20px; }
+.modal h3 { font-size: 18px; font-weight: 700; margin-bottom: 20px; text-align: center; }
+.modal-form { display: flex; flex-direction: column; gap: 14px; }
+.modal-form label { font-size: 13px; color: #666; font-weight: 500; }
+.modal-form input, .modal-form select, .modal-form textarea { width: 100%; padding: 11px 14px; border: 1.5px solid #eee; border-radius: 12px; font-size: 14px; outline: none; transition: border-color 0.2s; background: #fafafa; font-family: inherit; }
+.modal-form input:focus, .modal-form select:focus, .modal-form textarea:focus { border-color: #F5A623; background: #fff; }
+.modal-form textarea { resize: none; height: 80px; }
+.modal-btns { display: flex; gap: 12px; margin-top: 10px; }
+.modal-btns button { flex: 1; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+.modal-btns .cancel-btn { background: #f5f5f5; color: #666; }
+.modal-btns .confirm-btn { background: linear-gradient(135deg, #F5A623, #E85D04); color: #fff; }
+.modal-btns button:active { transform: scale(0.97); }
+.apikey-section { margin: 0 20px; background: #fff; border-radius: 16px; padding: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+.apikey-section h4 { font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.apikey-input-wrap { display: flex; gap: 8px; }
+.apikey-input-wrap input { flex: 1; padding: 10px 12px; border: 1.5px solid #eee; border-radius: 10px; font-size: 13px; outline: none; background: #fafafa; }
+.apikey-input-wrap input:focus { border-color: #F5A623; }
+.apikey-input-wrap button { padding: 10px 16px; background: linear-gradient(135deg, #F5A623, #E85D04); color: #fff; border: none; border-radius: 10px; font-size: 13px; cursor: pointer; white-space: nowrap; }
+.apikey-status { font-size: 11px; margin-top: 8px; display: flex; align-items: center; gap: 4px; }
+.apikey-status.connected { color: #4CAF50; }
+.apikey-status.disconnected { color: #f44336; }
+.trip-detail { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 3000; overflow-y: auto; }
+.trip-detail.show { display: block; }
+.trip-detail-header { background: linear-gradient(135deg, #F5A623, #E85D04); padding: 50px 20px 24px; color: #fff; }
+.trip-detail-back { display: flex; align-items: center; gap: 6px; font-size: 14px; cursor: pointer; margin-bottom: 16px; opacity: 0.9; }
+.trip-detail-back:active { opacity: 0.7; }
+.trip-detail-header h2 { font-size: 22px; font-weight: 700; }
+.trip-detail-header p { font-size: 13px; opacity: 0.85; margin-top: 4px; }
+.trip-detail-content { padding: 20px; }
+.trip-day { margin-bottom: 20px; }
+.trip-day h4 { font-size: 15px; font-weight: 600; color: #E85D04; margin-bottom: 10px; padding-left: 12px; border-left: 3px solid #F5A623; }
+.trip-day-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
+.trip-day-item .time { font-size: 12px; color: #999; min-width: 50px; padding-top: 2px; }
+.trip-day-item .activity { font-size: 14px; line-height: 1.5; }
+.trip-day-item .activity strong { color: #333; }
+.trip-day-item .activity span { display: block; font-size: 12px; color: #999; margin-top: 2px; }
+.loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 5000; align-items: center; justify-content: center; flex-direction: column; gap: 16px; }
+.loading-overlay.show { display: flex; }
+.loading-spinner { width: 40px; height: 40px; border: 3px solid #eee; border-top-color: #E85D04; border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 14px; color: #666; }
+.toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.75); color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 6000; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+.toast.show { opacity: 1; }
+::-webkit-scrollbar { width: 0; height: 0; }
+.empty-state { text-align: center; padding: 40px 20px; color: #ccc; }
+.empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+.empty-state p { font-size: 14px; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="page active" id="page-home">
+    <div class="home-header">
+      <div class="home-greeting">咕噜，你好呀</div>
+      <div class="home-subtitle">READY FOR A NEW JOURNEY?</div>
+    </div>
+    <div class="mascot-area">
+      <div class="mascot">&#x1F43E;</div>
+    </div>
+    <div class="ai-plan-entry">
+      <h3><svg viewBox="0 0 24 24" width="20" height="20" fill="#E85D04"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>AI 智能规划<span class="badge">NEW</span></h3>
+      <div class="ai-form">
+        <input type="text" id="home-dest" placeholder="你想去哪里？如：成都、东京..." />
+        <div class="ai-form-row">
+          <input type="number" id="home-days" placeholder="出行天数" min="1" max="30" value="3" />
+          <select id="home-budget"><option value="经济">经济实惠</option><option value="舒适" selected>舒适出行</option><option value="豪华">豪华享受</option></select>
+        </div>
+        <input type="text" id="home-style" placeholder="旅行偏好（可选，如：美食、文化、自然...）" />
+        <button class="ai-plan-btn" onclick="generatePlan()">开始AI规划</button>
+      </div>
+    </div>
+    <div class="section-title"><span>我的行程</span><span class="more" onclick="switchTab(2)">查看全部</span></div>
+    <div class="trip-cards" id="trip-cards">
+      <div class="trip-card" onclick="showTripDetail('tokyo')"><div class="trip-card-img tokyo">&#x1F5FC;</div><div class="trip-card-info"><h4>东京 5日游</h4><p>2025.03.15 - 2025.03.19</p><div class="trip-card-tags"><span>美食</span><span>购物</span><span>文化</span></div></div></div>
+      <div class="trip-card" onclick="showTripDetail('chengdu')"><div class="trip-card-img chengdu">&#x1F408;</div><div class="trip-card-info"><h4>成都 3日游</h4><p>2025.04.01 - 2025.04.03</p><div class="trip-card-tags"><span>火锅</span><span>熊猫</span><span>休闲</span></div></div></div>
+    </div>
+  </div>
+  <div class="page" id="page-explore">
+    <div class="explore-header"><h2>探索世界</h2><div class="search-bar"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg><input type="text" placeholder="搜索目的地、景点..." /></div></div>
+    <div class="explore-categories">
+      <div class="cat-item"><div class="cat-icon" style="background:#FFF3E0;">&#x1F3D6;</div><span>海岛</span></div>
+      <div class="cat-item"><div class="cat-icon" style="background:#E8F5E9;">&#x26F0;</div><span>山岳</span></div>
+      <div class="cat-item"><div class="cat-icon" style="background:#FCE4EC;">&#x1F3EF;</div><span>古镇</span></div>
+      <div class="cat-item"><div class="cat-icon" style="background:#E3F2FD;">&#x1F5FC;</div><span>都市</span></div>
+      <div class="cat-item"><div class="cat-icon" style="background:#FFF8E1;">&#x1F3DB;</div><span>古迹</span></div>
+      <div class="cat-item"><div class="cat-icon" style="background:#F3E5F5;">&#x1F338;</div><span>赏花</span></div>
+    </div>
+    <div class="section-title"><span>热门目的地</span></div>
+    <div class="dest-grid">
+      <div class="dest-card"><div class="dest-card-img" style="background:linear-gradient(135deg,#FFB7C5,#FF69B4);">&#x1F5FC;</div><div class="dest-card-info"><h4>东京</h4><p>日本 · 热门</p></div></div>
+      <div class="dest-card"><div class="dest-card-img" style="background:linear-gradient(135deg,#87CEEB,#4169E1);">&#x1F5FD;</div><div class="dest-card-info"><h4>巴黎</h4><p>法国 · 浪漫</p></div></div>
+      <div class="dest-card"><div class="dest-card-img" style="background:linear-gradient(135deg,#98FB98,#2E8B57);">&#x1F3DD;</div><div class="dest-card-info"><h4>巴厘岛</h4><p>印尼 · 海岛</p></div></div>
+      <div class="dest-card"><div class="dest-card-img" style="background:linear-gradient(135deg,#FFD700,#FF8C00);">&#x1F408;</div><div class="dest-card-info"><h4>成都</h4><p>中国 · 美食</p></div></div>
+      <div class="dest-card"><div class="dest-card-img" style="background:linear-gradient(135deg,#DDA0DD,#9370DB);">&#x1F1E8;&#x1F1F3;</div><div class="dest-card-info"><h4>清迈</h4><p>泰国 · 文化</p></div></div>
+      <div class="dest-card"><div class="dest-card-img" style="background:linear-gradient(135deg,#B0E0E6,#4682B4);">&#x1F1FA;&#x1F1F8;</div><div class="dest-card-info"><h4>纽约</h4><p>美国 · 都市</p></div></div>
+    </div>
+  </div>
+  <div class="page" id="page-butler" style="display:none; flex-direction:column;">
+    <div class="chat-header"><div class="chat-avatar">&#x1F43E;</div><div class="chat-header-info"><h3>咕噜管家</h3><p>&#x25CF; 在线</p></div></div>
+    <div class="chat-messages" id="chat-messages"><div class="chat-msg ai"><div class="chat-msg-avatar">&#x1F43E;</div><div class="chat-bubble">你好呀！我是咕噜管家，你的专属旅行助手~ 有什么旅行问题都可以问我哦！&#x1F60A;</div></div></div>
+    <div class="chat-input-area"><input type="text" id="chat-input" placeholder="问我任何旅行问题..." onkeydown="if(event.key==='Enter')sendChat()" /><button class="chat-send-btn" onclick="sendChat()"><svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg></button></div>
+  </div>
+  <div class="page" id="page-profile">
+    <div class="profile-header"><div class="profile-avatar">&#x1F468;&#x200D;&#x2708;</div><div class="profile-name">旅行者</div><div class="profile-desc">探索世界的每一个角落</div><div class="profile-stats"><div class="profile-stat"><div class="num">2</div><div class="label">行程</div></div><div class="profile-stat"><div class="num">5</div><div class="label">城市</div></div><div class="profile-stat"><div class="num">12</div><div class="label">足迹</div></div></div></div>
+    <div class="apikey-section"><h4><svg viewBox="0 0 24 24" width="16" height="16" fill="#E85D04"><path d="M12.65 10C11.83 7.67 9.61 6 7 6c-3.31 0-6 2.69-6 6s2.69 6 6 6c2.61 0 4.83-1.67 5.65-4H17v4h4v-4h2v-4H12.65zM7 14c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/></svg>DeepSeek API Key</h4><div class="apikey-input-wrap"><input type="password" id="apikey-input" placeholder="输入你的 API Key" /><button onclick="saveApiKey()">保存</button></div><div class="apikey-status" id="apikey-status"></div></div>
+    <div class="profile-menu">
+      <div class="profile-menu-item"><div class="icon" style="background:#FFF3E0;">&#x1F4CB;</div><div class="text"><h4>我的行程</h4><p>查看和管理旅行计划</p></div><div class="arrow">&#x203A;</div></div>
+      <div class="profile-menu-item"><div class="icon" style="background:#E8F5E9;">&#x2764;</div><div class="text"><h4>收藏夹</h4><p>收藏的目的地和攻略</p></div><div class="arrow">&#x203A;</div></div>
+      <div class="profile-menu-item"><div class="icon" style="background:#E3F2FD;">&#x1F4DE;</div><div class="text"><h4>旅行提醒</h4><p>签证、天气、出行提醒</p></div><div class="arrow">&#x203A;</div></div>
+      <div class="profile-menu-item"><div class="icon" style="background:#FCE4EC;">&#x2699;</div><div class="text"><h4>设置</h4><p>语言、通知、隐私</p></div><div class="arrow">&#x203A;</div></div>
+      <div class="profile-menu-item"><div class="icon" style="background:#F3E5F5;">&#x2753;</div><div class="text"><h4>帮助与反馈</h4><p>常见问题、意见反馈</p></div><div class="arrow">&#x203A;</div></div>
+    </div>
+  </div>
+  <div class="bottom-nav">
+    <div class="nav-item active" onclick="switchTab(0)" id="nav-0"><svg viewBox="0 0 24 24" fill="currentColor" style="color:#E85D04;"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span style="color:#E85D04;">行程</span></div>
+    <div class="nav-item" onclick="switchTab(1)" id="nav-1"><svg viewBox="0 0 24 24" fill="#999"><path d="M12 10.9c-.61 0-1.1.49-1.1 1.1s.49 1.1 1.1 1.1c.61 0 1.1-.49 1.1-1.1s-.49-1.1-1.1-1.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm2.19 12.19L6 18l3.81-8.19L18 6l-3.81 8.19z"/></svg><span>探索</span></div>
+    <div class="nav-center" onclick="openCreateModal()"><div class="nav-center-btn"><svg viewBox="0 0 24 24"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg></div></div>
+    <div class="nav-item" onclick="switchTab(3)" id="nav-3"><svg viewBox="0 0 24 24" fill="#999"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg><span>管家</span></div>
+    <div class="nav-item" onclick="switchTab(4)" id="nav-4"><svg viewBox="0 0 24 24" fill="#999"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg><span>我的</span></div>
+  </div>
+</div>
+<div class="modal-overlay" id="create-modal"><div class="modal"><div class="modal-handle"></div><h3>创建新行程</h3><div class="modal-form"><div><label>目的地</label><input type="text" id="modal-dest" placeholder="你想去哪里？" /></div><div style="display:flex;gap:10px;"><div style="flex:1;"><label>开始日期</label><input type="date" id="modal-start" /></div><div style="flex:1;"><label>天数</label><input type="number" id="modal-days" placeholder="天数" min="1" max="30" value="3" /></div></div><div><label>预算等级</label><select id="modal-budget"><option value="经济">经济实惠</option><option value="舒适" selected>舒适出行</option><option value="豪华">豪华享受</option></select></div><div><label>旅行偏好（可选）</label><textarea id="modal-style" placeholder="如：喜欢美食、不喜欢太赶的行程、带小孩..."></textarea></div><div class="modal-btns"><button class="cancel-btn" onclick="closeCreateModal()">取消</button><button class="confirm-btn" onclick="createTrip()">AI 智能生成</button></div></div></div></div>
+<div class="trip-detail" id="trip-detail"><div class="trip-detail-header"><div class="trip-detail-back" onclick="closeTripDetail()">&#x203A; 返回</div><h2 id="detail-title">行程详情</h2><p id="detail-subtitle"></p></div><div class="trip-detail-content" id="detail-content"></div></div>
+<div class="loading-overlay" id="loading"><div class="loading-spinner"></div><div class="loading-text" id="loading-text">咕噜正在为你规划中...</div></div>
+<div class="toast" id="toast"></div>
+<script>
+const pages=['page-home','page-explore',null,'page-butler','page-profile'];let currentTab=0;let chatHistory=[];
+function switchTab(i){if(i===2){openCreateModal();return;}currentTab=i;document.querySelectorAll('.page').forEach(p=>{p.style.display='none';p.classList.remove('active');});const pid=pages[i];if(pid){const pg=document.getElementById(pid);if(pid==='page-butler')pg.style.display='flex';else pg.style.display='block';pg.classList.add('active');}for(let j=0;j<5;j++){const nv=document.getElementById('nav-'+j);if(!nv)continue;if(j===i){nv.classList.add('active');nv.querySelector('svg').style.color='#E85D04';nv.querySelector('span').style.color='#E85D04';}else{nv.classList.remove('active');nv.querySelector('svg').style.color='#999';nv.querySelector('span').style.color='#999';}}}
+function getApiKey(){return localStorage.getItem('deepseek_api_key')||'';}
+function saveApiKey(){const k=document.getElementById('apikey-input').value.trim();if(k){localStorage.setItem('deepseek_api_key',k);updateApiKeyStatus();showToast('API Key 保存成功');}else{localStorage.removeItem('deepseek_api_key');updateApiKeyStatus();showToast('API Key 已清除');}}
+function updateApiKeyStatus(){const k=getApiKey();const el=document.getElementById('apikey-status');const inp=document.getElementById('apikey-input');if(k){el.className='apikey-status connected';el.innerHTML='&#x2713; 已配置 · '+k.substring(0,8)+'...';inp.value=k;}else{el.className='apikey-status disconnected';el.innerHTML='&#x2717; 未配置 · 请前往 <a href="https://platform.deepseek.com/" target="_blank" style="color:#E85D04;">platform.deepseek.com</a> 获取';inp.value='';}}
+function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function showLoading(t){document.getElementById('loading-text').textContent=t||'咕噜正在为你规划中...';document.getElementById('loading').classList.add('show');}
+function hideLoading(){document.getElementById('loading').classList.remove('show');}
+function openCreateModal(){document.getElementById('create-modal').classList.add('show');const d=new Date();d.setDate(d.getDate()+7);document.getElementById('modal-start').value=d.toISOString().split('T')[0];}
+function closeCreateModal(){document.getElementById('create-modal').classList.remove('show');}
+async function callDeepSeek(msgs){const k=getApiKey();if(!k){showToast('请先在"我的"页面设置 API Key');switchTab(4);return null;}try{const r=await fetch('https://api.deepseek.com/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+k},body:JSON.stringify({model:'deepseek-chat',messages:msgs,temperature:0.7,max_tokens:2000})});if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e.error?.message||'API 请求失败 ('+r.status+')');}const d=await r.json();return d.choices[0].message.content;}catch(e){showToast('请求失败: '+e.message);return null;}}
+async function generatePlan(){const dest=document.getElementById('home-dest').value.trim();const days=document.getElementById('home-days').value;const budget=document.getElementById('home-budget').value;const style=document.getElementById('home-style').value.trim();if(!dest){showToast('请输入目的地');return;}showLoading('咕噜正在为你的'+dest+'之旅规划中...');const p=`你是旅行规划助手"咕噜"。请为用户生成${dest}${days}日旅行计划。预算：${budget}。${style?'偏好：'+style+'。':''}按天规划，每天3-4个活动，包含时间、地点、内容、花费。包含美食和交通建议。用JSON格式输出：{"title":"标题","dest":"${dest}","days":${days},"plan":[{"day":1,"theme":"主题","items":[{"time":"09:00","title":"活动","desc":"描述","cost":"花费"}]}]}`;const r=await callDeepSeek([{role:'system',content:'你是咕噜出行AI助手，擅长旅行规划。请始终以JSON格式回复。'},{role:'user',content:p}]);hideLoading();if(r)displayPlanResult(r);}
+async function createTrip(){const dest=document.getElementById('modal-dest').value.trim();const start=document.getElementById('modal-start').value;const days=document.getElementById('modal-days').value;const budget=document.getElementById('modal-budget').value;const style=document.getElementById('modal-style').value.trim();if(!dest){showToast('请输入目的地');return;}if(!start){showToast('请选择出发日期');return;}closeCreateModal();showLoading('咕噜正在为你的'+dest+'之旅规划中...');const p=`你是旅行规划助手"咕噜"。请为用户生成${dest}${days}日旅行计划。出发：${start}，预算：${budget}。${style?'偏好：'+style+'。':''}按天规划，每天3-4个活动。用JSON格式输出：{"title":"标题","dest":"${dest}","days":${days},"plan":[{"day":1,"theme":"主题","items":[{"time":"09:00","title":"活动","desc":"描述","cost":"花费"}]}]}`;const r=await callDeepSeek([{role:'system',content:'你是咕噜出行AI助手。请始终以JSON格式回复。'},{role:'user',content:p}]);hideLoading();if(r)displayPlanResult(r);}
+function displayPlanResult(r){try{let j=r;const m=r.match(/\{[\s\S]*\}/);if(m)j=m[0];const p=JSON.parse(j);document.getElementById('detail-title').textContent=p.title||p.dest+' '+p.days+'日游';document.getElementById('detail-subtitle').textContent=p.dest+' · '+p.days+'天';let h='';(p.plan||[]).forEach(d=>{h+='<div class="trip-day"><h4>Day '+d.day+(d.theme?' · '+d.theme:'')+'</h4>';(d.items||[]).forEach(i=>{h+='<div class="trip-day-item"><div class="time">'+i.time+'</div><div class="activity"><strong>'+i.title+'</strong><span>'+i.desc+'</span>'+(i.cost?'<span style="color:#E85D04;">'+i.cost+'</span>':'')+'</div></div>';});h+='</div>';});document.getElementById('detail-content').innerHTML=h||'<div class="empty-state"><div class="icon">&#x1F4ED;</div><p>暂无详细行程</p></div>';document.getElementById('trip-detail').classList.add('show');addTripCard(p);}catch(e){document.getElementById('detail-title').textContent='AI 旅行计划';document.getElementById('detail-subtitle').textContent='';document.getElementById('detail-content').innerHTML='<div style="white-space:pre-wrap;line-height:1.8;font-size:14px;">'+r.replace(/</g,'&lt;')+'</div>';document.getElementById('trip-detail').classList.add('show');}}
+function addTripCard(p){const c=document.getElementById('trip-cards');const e=['&#x2708;','&#x1F3D6;','&#x26F0;','&#x1F3EF;','&#x1F5FC;','&#x1F3DB;'];const g=['linear-gradient(135deg,#FFB7C5,#FF69B4)','linear-gradient(135deg,#87CEEB,#4169E1)','linear-gradient(135deg,#98FB98,#2E8B57)','linear-gradient(135deg,#FFD700,#FF8C00)','linear-gradient(135deg,#DDA0DD,#9370DB)','linear-gradient(135deg,#B0E0E6,#4682B4)'];const i=Math.floor(Math.random()*e.length);const cd=document.createElement('div');cd.className='trip-card';cd.innerHTML=`<div class="trip-card-img" style="background:${g[i]}">${e[i]}</div><div class="trip-card-info"><h4>${p.title||p.dest+' '+p.days+'日游'}</h4><p>AI 智能规划 · ${p.days}天</p><div class="trip-card-tags"><span>AI规划</span><span>${p.dest}</span></div></div>`;c.insertBefore(cd,c.firstChild);}
+function closeTripDetail(){document.getElementById('trip-detail').classList.remove('show');}
+function showTripDetail(id){closeTripDetail();}
+async function sendChat(){const inp=document.getElementById('chat-input');const msg=inp.value.trim();if(!msg)return;inp.value='';appendChatMsg('user',msg);chatHistory.push({role:'user',content:msg});const tid=appendTyping();const sys={role:'system',content:'你是"咕噜出行"的AI旅行管家"咕噜"。你热情、专业、幽默，擅长旅行规划、景点推荐、美食攻略。回答简洁有用，适当使用emoji。'};const msgs=[sys,...chatHistory.slice(-10)];const r=await callDeepSeek(msgs);removeTyping(tid);if(r){appendChatMsg('ai',r);chatHistory.push({role:'assistant',content:r});}}
+function appendChatMsg(t,txt){const c=document.getElementById('chat-messages');const d=document.createElement('div');d.className='chat-msg '+t;d.innerHTML=`<div class="chat-msg-avatar">${t==='ai'?'&#x1F43E;':'&#x1F464;'}</div><div class="chat-bubble">${txt.replace(/\n/g,'<br>')}</div>`;c.appendChild(d);c.scrollTop=c.scrollHeight;return d;}
+function appendTyping(){const c=document.getElementById('chat-messages');const d=document.createElement('div');d.className='chat-msg ai';d.id='typing-'+Date.now();d.innerHTML=`<div class="chat-msg-avatar">&#x1F43E;</div><div class="chat-bubble"><div class="typing-indicator"><span></span><span></span><span></span></div></div>`;c.appendChild(d);c.scrollTop=c.scrollHeight;return d.id;}
+function removeTyping(id){const el=document.getElementById(id);if(el)el.remove();}
+document.addEventListener('DOMContentLoaded',()=>{updateApiKeyStatus();const d=new Date();d.setDate(d.getDate()+7);document.getElementById('modal-start').value=d.toISOString().split('T')[0];});
+document.getElementById('create-modal').addEventListener('click',function(e){if(e.target===this)closeCreateModal();});
+</script>
+</body>
+</html>
